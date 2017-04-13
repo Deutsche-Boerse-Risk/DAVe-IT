@@ -135,7 +135,7 @@
                     <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
                     <images>
                         <image>
-                            <alias>db</alias>
+                            <alias>mongodb</alias>
                             <name>mongo:3.4</name>
                             <run>
                                 <network>
@@ -158,7 +158,7 @@
                             </run>
                         </image>
                         <image>
-                            <alias>cil-broker</alias>
+                            <alias>cil.broker</alias>
                             <name>zeromic/cil:prod</name>
                             <run>
                                 <network>
@@ -185,6 +185,9 @@
                             <alias>DAVe-StoreManager</alias>
                             <name>dbgdave/dave-store-manager:master</name>
                             <run>
+                                <dependsOn>
+                                    <container>mongodb</container>
+                                </dependsOn>
                                 <env>
                                     <MONGO_CONNECTION_URL>mongodb://mongodb:27017/?waitqueuemultiple=20000</MONGO_CONNECTION_URL>
                                     <API_SSL_KEY>
@@ -293,6 +296,10 @@
                             <alias>DAVe-MarginLoader</alias>
                             <name>dbgdave/dave-margin-loader:master</name>
                             <run>
+                                <dependsOn>
+                                    <container>cil.broker</container>
+                                    <container>DAVe-StoreManager</container>
+                                </dependsOn>
                                 <env>
                                     <LOG_LEVEL>debug</LOG_LEVEL>
                                     <AMQP_HOSTNAME>cil.broker</AMQP_HOSTNAME>
@@ -403,6 +410,9 @@
                             <alias>DAVe-API</alias>
                             <name>dbgdave/dave-api:dave2.0</name>
                             <run>
+                                <dependsOn>
+                                    <container>DAVe-StoreManager</container>
+                                </dependsOn>
                                 <env>
                                     <STOREMANAGER_HOSTNAME>store-manager</STOREMANAGER_HOSTNAME>
                                     <STOREMANAGER_SSL_KEY>
