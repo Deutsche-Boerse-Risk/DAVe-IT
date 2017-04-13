@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave.utils;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
-import com.deutscheboerse.risk.dave.MainVerticleIT;
+import com.deutscheboerse.risk.dave.HealthCheckIT;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -27,7 +27,7 @@ public class DataHelper {
     public static final String RISK_LIMIT_UTILIZATION_FOLDER = "riskLimitUtilization";
 
     private static Optional<JsonArray> getJsonArrayFromTTSaveFile(String folderName, int ttsaveNo) {
-        String jsonPath = String.format("%s/snapshot-%03d.json", MainVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
+        String jsonPath = String.format("%s/snapshot-%03d.json", HealthCheckIT.class.getResource(folderName).getPath(), ttsaveNo);
         try {
             byte[] jsonArrayBytes = Files.readAllBytes(Paths.get(jsonPath));
             JsonArray jsonArray = new JsonArray(new String(jsonArrayBytes, Charset.defaultCharset()));
