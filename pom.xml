@@ -60,6 +60,7 @@
                             <storemanager.healthcheck.port>${storemanager.healthcheck.port}</storemanager.healthcheck.port>
                             <marginloader.healthcheck.port>${marginloader.healthcheck.port}</marginloader.healthcheck.port>
                             <api.healthcheck.port>${api.healthcheck.port}</api.healthcheck.port>
+                            <api.http.port>${api.http.port}</api.http.port>
                             <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
                             <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
                         </systemPropertyVariables>
@@ -104,27 +105,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${build.helper.maven.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>reserve-network-port</id>
-                        <goals>
-                            <goal>reserve-network-port</goal>
-                        </goals>
-                        <phase>process-sources</phase>
-                        <configuration>
-                            <portNames>
-                                <portName>api.http.port</portName>
-                                <portName>api.healthcheck.port</portName>
-                                <portName>marginloader.healthcheck.port</portName>
-                            </portNames>
-                          </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <configuration>
@@ -135,13 +115,13 @@
                     <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
                     <images>
                         <image>
-                            <alias>mongodb</alias>
+                            <alias>mongo.db</alias>
                             <name>mongo:3.4</name>
                             <run>
                                 <network>
                                     <mode>custom</mode>
                                     <name>dave-it</name>
-                                    <alias>mongodb</alias>
+                                    <alias>mongo.db</alias>
                                 </network>
                                 <wait>
                                     <log>waiting for connections on port</log>
@@ -182,14 +162,15 @@
                             </run>
                         </image>
                         <image>
-                            <alias>DAVe-StoreManager</alias>
+                            <alias>dave.store.manager</alias>
                             <name>dbgdave/dave-store-manager:master</name>
                             <run>
                                 <dependsOn>
-                                    <container>mongodb</container>
+                                    <container>mongo.db</container>
                                 </dependsOn>
                                 <env>
-                                    <MONGO_CONNECTION_URL>mongodb://mongodb:27017/?waitqueuemultiple=20000</MONGO_CONNECTION_URL>
+                                    <MONGO_CONNECTION_URL>mongodb://mongo.db:27017/?waitqueuemultiple=20000</MONGO_CONNECTION_URL>
+                                    <API_SSL_REQUIRE_CLIENT_AUTH>true</API_SSL_REQUIRE_CLIENT_AUTH>
                                     <API_SSL_KEY>
                                         -----BEGIN PRIVATE KEY-----
                                         MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDYKB+le9nyGWI/
@@ -271,7 +252,7 @@
                                 <network>
                                     <mode>custom</mode>
                                     <name>dave-it</name>
-                                    <alias>store-manager</alias>
+                                    <alias>dave.store.manager</alias>
                                 </network>
                                 <wait>
                                     <http>
@@ -293,17 +274,17 @@
                             </run>
                         </image>
                         <image>
-                            <alias>DAVe-MarginLoader</alias>
+                            <alias>dave.margin.loader</alias>
                             <name>dbgdave/dave-margin-loader:master</name>
                             <run>
                                 <dependsOn>
                                     <container>cil.broker</container>
-                                    <container>DAVe-StoreManager</container>
+                                    <container>dave.store.manager</container>
                                 </dependsOn>
                                 <env>
-                                    <LOG_LEVEL>debug</LOG_LEVEL>
                                     <AMQP_HOSTNAME>cil.broker</AMQP_HOSTNAME>
-                                    <STOREMANAGER_HOSTNAME>store-manager</STOREMANAGER_HOSTNAME>
+                                    <STOREMANAGER_HOSTNAME>dave.store.manager</STOREMANAGER_HOSTNAME>
+                                    <STOREMANAGER_VERIFY_HOST>false</STOREMANAGER_VERIFY_HOST>
                                     <STOREMANAGER_SSL_KEY>
                                         -----BEGIN PRIVATE KEY-----
                                         MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC014XNxqLkS++t
@@ -386,7 +367,7 @@
                                 <network>
                                     <mode>custom</mode>
                                     <name>dave-it</name>
-                                    <alias>margin-loader</alias>
+                                    <alias>dave.margin.loader</alias>
                                 </network>
                                 <wait>
                                     <http>
@@ -407,14 +388,15 @@
                             </run>
                         </image>
                         <image>
-                            <alias>DAVe-API</alias>
+                            <alias>dave.api</alias>
                             <name>dbgdave/dave-api:dave2.0</name>
                             <run>
                                 <dependsOn>
-                                    <container>DAVe-StoreManager</container>
+                                    <container>dave.store.manager</container>
                                 </dependsOn>
                                 <env>
-                                    <STOREMANAGER_HOSTNAME>store-manager</STOREMANAGER_HOSTNAME>
+                                    <STOREMANAGER_HOSTNAME>dave.store.manager</STOREMANAGER_HOSTNAME>
+                                    <STOREMANAGER_VERIFY_HOST>false</STOREMANAGER_VERIFY_HOST>
                                     <STOREMANAGER_SSL_KEY>
                                         -----BEGIN PRIVATE KEY-----
                                         MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDCCTOzH5MPIJoh
@@ -554,7 +536,7 @@
                                 <network>
                                     <mode>custom</mode>
                                     <name>dave-it</name>
-                                    <alias>dave-api</alias>
+                                    <alias>dave.api</alias>
                                 </network>
                                 <wait>
                                     <http>

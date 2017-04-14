@@ -7,6 +7,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonClient;
 import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonSender;
@@ -16,11 +18,14 @@ import org.apache.qpid.proton.message.Message;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class BrokerFillerCorrectData implements BrokerFiller {
+    private static final Logger LOG = LoggerFactory.getLogger(BrokerFillerCorrectData.class);
+
     private static final String BROKER_USERNAME = "admin";
     private static final String BROKER_PASSWORD = "admin";
     private static final String ACCOUNT_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin";
@@ -38,15 +43,15 @@ public class BrokerFillerCorrectData implements BrokerFiller {
         this.tcpPort = TestConfig.BROKER_PORT;
     }
 
-    public void setUpAllQueues(Handler<AsyncResult<String>> handler) {
+    public void setUpAllQueues(int ttSaveNo, Handler<AsyncResult<String>> handler) {
         Future<ProtonConnection> chainFuture = Future.future();
         this.createAmqpConnection()
-                .compose(this::populateAccountMarginQueue)
-                .compose(this::populateLiquiGroupMarginQueue)
-                .compose(this::populateLiquiGroupSplitMarginQueue)
-                .compose(this::populatePoolMarginQueue)
-                .compose(this::populatePositionReportQueue)
-                .compose(this::populateRiskLimitUtilizationQueue)
+                .compose(con -> this.populateAccountMarginQueue(con, ttSaveNo))
+                .compose(con -> this.populateLiquiGroupMarginQueue(con, ttSaveNo))
+                .compose(con -> this.populateLiquiGroupSplitMarginQueue(con, ttSaveNo))
+                .compose(con -> this.populatePoolMarginQueue(con, ttSaveNo))
+                .compose(con -> this.populatePositionReportQueue(con, ttSaveNo))
+                .compose(con -> this.populateRiskLimitUtilizationQueue(con, ttSaveNo))
                 .compose(chainFuture::complete, chainFuture);
         chainFuture.setHandler(ar -> {
            if (ar.succeeded()) {
@@ -57,33 +62,33 @@ public class BrokerFillerCorrectData implements BrokerFiller {
         });
     }
 
-    public void setUpAccountMarginQueue(Handler<AsyncResult<String>> handler) {
-        setUpQueue(this::populateAccountMarginQueue, handler);
+    public void setUpAccountMarginQueue(int ttSaveNo, Handler<AsyncResult<String>> handler) {
+        setUpQueue(this::populateAccountMarginQueue, ttSaveNo, handler);
     }
 
-    public void setUpLiquiGroupMarginQueue(Handler<AsyncResult<String>> handler) {
-        setUpQueue(this::populateLiquiGroupMarginQueue, handler);
+    public void setUpLiquiGroupMarginQueue(int ttSaveNo, Handler<AsyncResult<String>> handler) {
+        setUpQueue(this::populateLiquiGroupMarginQueue, ttSaveNo, handler);
     }
 
-    public void setUpLiquiGroupSplitMarginQueue(Handler<AsyncResult<String>> handler) {
-        setUpQueue(this::populateLiquiGroupSplitMarginQueue, handler);
+    public void setUpLiquiGroupSplitMarginQueue(int ttSaveNo, Handler<AsyncResult<String>> handler) {
+        setUpQueue(this::populateLiquiGroupSplitMarginQueue, ttSaveNo, handler);
     }
 
-    public void setUpPoolMarginQueue(Handler<AsyncResult<String>> handler) {
-        setUpQueue(this::populatePoolMarginQueue, handler);
+    public void setUpPoolMarginQueue(int ttSaveNo, Handler<AsyncResult<String>> handler) {
+        setUpQueue(this::populatePoolMarginQueue, ttSaveNo, handler);
     }
 
-    public void setUpPositionReportQueue(Handler<AsyncResult<String>> handler) {
-        setUpQueue(this::populatePositionReportQueue, handler);
+    public void setUpPositionReportQueue(int ttSaveNo, Handler<AsyncResult<String>> handler) {
+        setUpQueue(this::populatePositionReportQueue, ttSaveNo, handler);
     }
 
-    public void setUpRiskLimitUtilizationQueue(Handler<AsyncResult<String>> handler) {
-        setUpQueue(this::populateRiskLimitUtilizationQueue, handler);
+    public void setUpRiskLimitUtilizationQueue(int ttSaveNo, Handler<AsyncResult<String>> handler) {
+        setUpQueue(this::populateRiskLimitUtilizationQueue, ttSaveNo, handler);
     }
 
-    private void setUpQueue(Function<ProtonConnection, Future<ProtonConnection>> populateFunction, Handler<AsyncResult<String>> handler) {
+    private void setUpQueue(BiFunction<ProtonConnection, Integer, Future<ProtonConnection>> populateFunction, int ttSaveNo, Handler<AsyncResult<String>> handler) {
         this.createAmqpConnection()
-                .compose(populateFunction)
+                .compose(con -> populateFunction.apply(con, ttSaveNo))
                 .setHandler(ar -> {
                     if (ar.succeeded()) {
                         handler.handle(Future.succeededFuture());
@@ -100,6 +105,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
             if (connectResult.succeeded()) {
                 connectResult.result().setContainer("dave/marginLoaderIT").openHandler(openResult -> {
                     if (openResult.succeeded()) {
+                        LOG.info("Connected to {}:{}", "localhost", this.tcpPort);
                         BrokerFillerCorrectData.protonConnection = openResult.result();
                         createAmqpConnectionFuture.complete(BrokerFillerCorrectData.protonConnection);
                     } else {
@@ -113,43 +119,43 @@ public class BrokerFillerCorrectData implements BrokerFiller {
         return createAmqpConnectionFuture;
     }
 
-    private Future<ProtonConnection> populateAccountMarginQueue(ProtonConnection protonConnection) {
-        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
+    private Future<ProtonConnection> populateAccountMarginQueue(ProtonConnection protonConnection, int ttSaveNo) {
+        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(ttSaveNo, ttSaveNo)
                 .boxed()
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, ACCOUNT_MARGIN_QUEUE, ttsaveNumbers, this::createAccountMarginGPBObjectList);
     }
 
-    private Future<ProtonConnection> populateLiquiGroupMarginQueue(ProtonConnection protonConnection) {
-        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
+    private Future<ProtonConnection> populateLiquiGroupMarginQueue(ProtonConnection protonConnection, int ttSaveNo) {
+        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(ttSaveNo, ttSaveNo)
                 .boxed()
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, LIQUI_GROUP_MARGIN_QUEUE, ttsaveNumbers, this::createLiquiGroupMarginGPBObjectList);
     }
 
-    private Future<ProtonConnection> populateLiquiGroupSplitMarginQueue(ProtonConnection protonConnection) {
-        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
+    private Future<ProtonConnection> populateLiquiGroupSplitMarginQueue(ProtonConnection protonConnection, int ttSaveNo) {
+        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(ttSaveNo, ttSaveNo)
                 .boxed()
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, LIQUI_GROUP_SPLIT_MARGIN_QUEUE, ttsaveNumbers, this::createLiquiGroupSplitMarginGPBObjectList);
     }
 
-    private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection) {
-        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
+    private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection, int ttSaveNo) {
+        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(ttSaveNo, ttSaveNo)
                 .boxed()
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, POOL_MARGIN_QUEUE, ttsaveNumbers, this::createPoolMarginGPBObjectList);
     }
 
-    private Future<ProtonConnection> populatePositionReportQueue(ProtonConnection protonConnection) {
-        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
+    private Future<ProtonConnection> populatePositionReportQueue(ProtonConnection protonConnection, int ttSaveNo) {
+        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(ttSaveNo, ttSaveNo)
                 .boxed()
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, POSITION_REPORT_QUEUE, ttsaveNumbers, this::createPositionReportGPBObjectList);
     }
 
-    private Future<ProtonConnection> populateRiskLimitUtilizationQueue(ProtonConnection protonConnection) {
-        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
+    private Future<ProtonConnection> populateRiskLimitUtilizationQueue(ProtonConnection protonConnection, int ttSaveNo) {
+        final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(ttSaveNo, ttSaveNo)
                 .boxed()
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, RISK_LIMIT_UTILIZATION_QUEUE, ttsaveNumbers, this::createRiskLimitUtilizationGPBObjectList);
@@ -174,6 +180,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
                     }
                 }
                 if (allSent) {
+                    LOG.info("All messages sent to {} ", sender.getRemoteTarget().getAddress());
                     populateQueueFuture.complete(protonConnection);
                 } else {
                     populateQueueFuture.fail("Failed to send some messages to " + queueName);
