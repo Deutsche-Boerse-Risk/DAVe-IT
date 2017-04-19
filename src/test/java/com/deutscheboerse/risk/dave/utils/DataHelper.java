@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave.utils;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.HealthCheckIT;
+import com.deutscheboerse.risk.dave.model.AbstractModel;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -61,10 +62,29 @@ public class DataHelper {
                 .reduce((a, b) -> b);
     }
 
+    public static <T extends AbstractModel> T getLastModelFromFile(Class<T> clazz, int ttsaveNo) {
+        String folderName = clazz.getSimpleName().substring(0, 1).toLowerCase() +
+                clazz.getSimpleName().substring(1).replace("Model", "");
+        JsonObject json = getLastJsonFromFile(folderName, ttsaveNo).orElse(new JsonObject());
+        try {
+            T model = clazz.newInstance();
+            model.mergeIn(json);
+            return model;
+        } catch (IllegalAccessException|InstantiationException e) {
+            throw new AssertionError();
+        }
+    }
+
     public static int getJsonObjectCount(String folderName, int ttsaveNo) {
         return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
                 .orElse(new JsonArray())
                 .size();
+    }
+
+    public static JsonObject getQueryParams(AbstractModel model) {
+        JsonObject queryParams = new JsonObject();
+        model.getKeys().forEach(key -> queryParams.put(key, model.getValue(key)));
+        return queryParams;
     }
 
     public static PrismaReports.AccountMargin createAccountMarginGPBFromJson(JsonObject json) {
