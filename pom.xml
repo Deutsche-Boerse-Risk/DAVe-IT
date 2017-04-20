@@ -389,7 +389,7 @@
                         </image>
                         <image>
                             <alias>dave.api</alias>
-                            <name>dbgdave/dave-api:dave2.0</name>
+                            <name>dbgdave/dave-api:master</name>
                             <run>
                                 <dependsOn>
                                     <container>dave.store.manager</container>
@@ -707,6 +707,3 @@
         </dependency>
     </dependencies>
 </project>
-
-
-
