@@ -17,7 +17,8 @@ jobs:
           command: |
             # store our env variables
             set | grep ^DOCKER > /tmp/env.list
-            docker run -d -it --name dave --env-file /tmp/env.list circleci/openjdk:8-jdk /bin/bash
+            docker network create dave-it
+            docker run -d -it --network dave-it --name dave --env-file /tmp/env.list circleci/openjdk:8-jdk /bin/bash
       - run:
           name: Copy sources and certs into the 'build' container
           command: |

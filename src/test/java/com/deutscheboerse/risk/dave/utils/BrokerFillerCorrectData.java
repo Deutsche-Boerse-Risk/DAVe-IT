@@ -28,12 +28,12 @@ public class BrokerFillerCorrectData implements BrokerFiller {
 
     private static final String BROKER_USERNAME = "admin";
     private static final String BROKER_PASSWORD = "admin";
-    private static final String ACCOUNT_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin";
-    private static final String LIQUI_GROUP_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin";
-    private static final String LIQUI_GROUP_SPLIT_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin";
-    private static final String POOL_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin";
-    private static final String POSITION_REPORT_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport";
-    private static final String RISK_LIMIT_UTILIZATION_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization";
+    private static final String ACCOUNT_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVEAccountMargin";
+    private static final String LIQUI_GROUP_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVELiquiGroupMargin";
+    private static final String LIQUI_GROUP_SPLIT_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVELiquiGroupSplitMargin";
+    private static final String POOL_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVEPoolMargin";
+    private static final String POSITION_REPORT_QUEUE = "broadcast.DAVE.PRISMA_DAVEPositionReport";
+    private static final String RISK_LIMIT_UTILIZATION_QUEUE = "broadcast.DAVE.PRISMA_DAVERiskLimitUtilization";
     private final Vertx vertx;
     private static ProtonConnection protonConnection;
 
@@ -105,7 +105,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
             if (connectResult.succeeded()) {
                 connectResult.result().setContainer("dave/marginLoaderIT").openHandler(openResult -> {
                     if (openResult.succeeded()) {
-                        LOG.info("Connected to {}:{}", "localhost", port);
+                        LOG.info("Connected to {}:{}", host, port);
                         BrokerFillerCorrectData.protonConnection = openResult.result();
                         createAmqpConnectionFuture.complete(BrokerFillerCorrectData.protonConnection);
                     } else {
