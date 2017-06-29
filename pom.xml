@@ -30,6 +30,8 @@
         <build.helper.maven.plugin.version>1.12</build.helper.maven.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <docker.autoCreateCustomNetworks>true</docker.autoCreateCustomNetworks>
     </properties>
 
     <build>
@@ -110,7 +112,7 @@
                     <autoPull>true</autoPull>
                     <skip>${skipTests}</skip>
                     <logStdout>false</logStdout>
-                    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+                    <autoCreateCustomNetworks>${docker.autoCreateCustomNetworks}</autoCreateCustomNetworks>
                     <images>
                         <image>
                             <alias>mongo.db</alias>
