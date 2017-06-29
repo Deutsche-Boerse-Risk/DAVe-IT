@@ -30,6 +30,8 @@
         <build.helper.maven.plugin.version>1.12</build.helper.maven.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <docker.autoCreateCustomNetworks>true</docker.autoCreateCustomNetworks>
     </properties>
 
     <build>
@@ -54,13 +56,11 @@
                     <version>${failsafe.maven.plugin.version}</version>
                     <configuration>
                         <systemPropertyVariables>
-                            <mongodb.port>${mongodb.port}</mongodb.port>
-                            <cil.tcpport>${cil.tcpport}</cil.tcpport>
-                            <cil.sslport>${cil.sslport}</cil.sslport>
-                            <storemanager.healthcheck.port>${storemanager.healthcheck.port}</storemanager.healthcheck.port>
-                            <marginloader.healthcheck.port>${marginloader.healthcheck.port}</marginloader.healthcheck.port>
-                            <api.healthcheck.port>${api.healthcheck.port}</api.healthcheck.port>
-                            <api.http.port>${api.http.port}</api.http.port>
+                            <cil.ip>${docker.container.cil.broker.net.dave-it.ip}</cil.ip>
+                            <mongodb.ip>${docker.container.mongo.db.net.dave-it.ip}</mongodb.ip>
+                            <api.ip>${docker.container.dave.api.net.dave-it.ip}</api.ip>
+                            <store.manager.ip>${docker.container.dave.store.manager.net.dave-it.ip}</store.manager.ip>
+                            <margin.loader.ip>${docker.container.dave.margin.loader.net.dave-it.ip}</margin.loader.ip>
                             <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
                             <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
                         </systemPropertyVariables>
@@ -112,7 +112,7 @@
                     <autoPull>true</autoPull>
                     <skip>${skipTests}</skip>
                     <logStdout>false</logStdout>
-                    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+                    <autoCreateCustomNetworks>${docker.autoCreateCustomNetworks}</autoCreateCustomNetworks>
                     <images>
                         <image>
                             <alias>mongo.db</alias>
@@ -132,9 +132,6 @@
                                     <color>yellow</color>
                                     <file>${project.build.directory}/mongo.log</file>
                                 </log>
-                                <ports>
-                                    <port>mongodb.port:27017</port>
-                                </ports>
                             </run>
                         </image>
                         <image>
@@ -155,10 +152,6 @@
                                     <color>cyan</color>
                                     <file>${project.build.directory}/broker.log</file>
                                 </log>
-                                <ports>
-                                    <port>cil.tcpport:5672</port>
-                                    <port>cil.sslport:5671</port>
-                                </ports>
                             </run>
                         </image>
                         <image>
@@ -257,11 +250,7 @@
                                     <alias>dave.store.manager</alias>
                                 </network>
                                 <wait>
-                                    <http>
-                                        <url>http://localhost:${storemanager.healthcheck.port}/readiness</url>
-                                        <method>GET</method>
-                                        <status>200</status>
-                                    </http>
+                                    <log>All verticles deployed</log>
                                     <time>10000</time>
                                 </wait>
                                 <log>
@@ -269,10 +258,6 @@
                                     <color>green</color>
                                     <file>${project.build.directory}/dave-storemanager.log</file>
                                 </log>
-                                <ports>
-                                    <port>storemanager.http.port:8443</port>
-                                    <port>storemanager.healthcheck.port:8080</port>
-                                </ports>
                             </run>
                         </image>
                         <image>
@@ -372,11 +357,7 @@
                                     <alias>dave.margin.loader</alias>
                                 </network>
                                 <wait>
-                                    <http>
-                                        <url>http://localhost:${marginloader.healthcheck.port}/readiness</url>
-                                        <method>GET</method>
-                                        <status>200</status>
-                                    </http>
+                                    <log>All verticles deployed</log>
                                     <time>10000</time>
                                 </wait>
                                 <log>
@@ -384,9 +365,6 @@
                                     <color>red</color>
                                     <file>${project.build.directory}/dave-marginloader.log</file>
                                 </log>
-                                <ports>
-                                    <port>marginloader.healthcheck.port:8080</port>
-                                </ports>
                             </run>
                         </image>
                         <image>
@@ -478,56 +456,57 @@
                                     </STOREMANAGER_SSL_TRUST_CERTS>
                                     <API_SSL_KEY>
                                         -----BEGIN PRIVATE KEY-----
-                                        MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDCCTOzH5MPIJoh
-                                        ZOLcejgGAqWkrEv56Gd0QuvquI+ih72S4HBGKYQ8rsYIifBAEC7oXIO1H0dqY46N
-                                        FRQSTRRx8Fk2jRwxt524ZNx8bxd0gKt9V3Wp7q7/oSqBOKkewn6BF48F7MXTqRTr
-                                        BBqBnuoCyGwrAXkVubPjeIGiDjBVx5uDXbxo+eYT15C5+DHzZVSvY9wPba2dh/dd
-                                        P/azcO5AI9m3EEyOkpgDWcZfQLHfZ4/1ZA/+8DRtgQ4Bbi8RJ3XRfw/txZycot7u
-                                        vezjlRLbMYffdldo8XEzUlE2ozLJ9LNJxPyefFv5S4U8iRk6kFXqM7aQjPHr9ssf
-                                        xrJ2CFsDAgMBAAECggEBAKRqwbk9vxIpcRFs+GMU2VYWdh/Us8h+qvM0Jc5ON7/k
-                                        P7ounlSFp3z4J+xiXgca73SLuDsI1y4KUGex/cEIOZPWsvHrnoFucqImLULvq7NX
-                                        uHjMXHLzQqxv96Fpzry22BUxTksZ+APDmWsPnhpJ+0cCZ84FQIItSoYsvcQBO+ni
-                                        cLrRoWFjGWDPLzbPN01cRbvTsoMZVzWNGyXcAU4IDxy7QzY8nIPfw3tw02p2MSCi
-                                        yXc/RwPfSkOLG+UGxiJy3K3F0X2BoAFeIfehLZbfTVsstSKp7dI9eWwR9YCmD4nK
-                                        Rqv6rY//nAJuAtyDH2f2K4GJzR2emEc70km1SSfoiukCgYEA7KZ8LYmC5ocBprUz
-                                        NWsV8z887YSBbdOJ91Vtzx0brVB8JsMRCfYbxPR8iG2jlgR44s5RXUUAumKYJFZy
-                                        bIGFNCWL3h/YR8+BkDUnqzZ6Exo3xtuV2UwR22SmAjbkN2PdfzggUKly0oHMwnht
-                                        TPODcvrQt8oaW0cV5KPVqpPlm70CgYEA0ea4tFngtVKJXMzDHUTkhfrnEddljUpq
-                                        yjSygwA1+/bXEy+96pYVjMZno+PJMLc1+OD7KwxB06xRcba8S4+RvSAvg3UixDsr
-                                        9Zp4OhHWFcOFG+R3B8WhVJbFox8rPnbBlQXGnJgOK3wyd1GHwcVw7q6x6JmKIayI
-                                        +U3Gj4hT3b8CgYBAtjHkveKWqTpRXOFY7SR+dL9zb7V408y5Xpn9dcc4uHaKnvLM
-                                        14i2beiT4e9GuYhY9PQY3iKZ1RYncaAufahwHwhFQE4DLQIP7gkf73CoQpYYAbnT
-                                        RtLnPHmMx3fWka9i93UWuY9VcvsL/qRc04YRbfafG1vjs+ePsyFdWL4DvQKBgQCN
-                                        JnEY3sPMS0eR/yRKP3TJYDMY/VcOD3gGqC9PBspGuPRis50r7mdpdlZlkJ1PxDRo
-                                        O6rLhP+TP3K5XF/9E/u2SbmJ1jBd80iZbZnhuvLTSdruKdGdiVn3DziyfBhRdfyx
-                                        oOOxlFMbDPbG5C29sW9DInkC6JVKFcM6mwGmrc9v8wKBgQC/R3rNWdxCYIDAfo/S
-                                        tH76R6BbKlXisSResHq0MnteQtQpn0h/yf9BvQh1T4EH1Bt4qZBCejB0I9Xt8xZm
-                                        8VIOV+YyM5TZq6Oak5VnfON16TMgeohy+BD5PpKnHTon7Y4P2oHy6IUgco7wxdm8
-                                        SoNKID09W7b2Udwd/gXkAHQEAw==
+                                        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDucuGqSzDYtIfb
+                                        zIFZoEi1Clqv24N/5Toyqc+2IQTYCwaRyrQGtZGOpbFmp1HYOS6qElZ+7Djr+46D
+                                        uYadzHCLC4Oq7O2RyryuovJQsYpONTa0nNnrwkOfdjImFqTw5oYIXkvrLwaPtH3l
+                                        PYII+hkUppdF8l1hyfrPW5gUmlQPue2Ou6WqV5h/zOEktql1TOXraqU6u6pHs/w6
+                                        Ktf+9sILvnl2gJmR9H+0cJH5i71Elra14iphe2x2fDiTDv2VF7Qb8hBVnCWQ3FQq
+                                        ay6X2pT8KPJZPkA6CbgDVCIuGTkUq5GVyHhO0ngQ8hzZeYkhCakiCmOVHbyej1a5
+                                        HbhJbX3/AgMBAAECggEBALQV34kVsJZ6AgFmumpOO5s/bq5SQ0ZcgU+yIEWVOmtQ
+                                        KG4DgWNvzbbGPO0igRWkWjHoF5tUHMlc+41QmPKkbHsW/yIgPmxViZr7Rbbb33Ch
+                                        j+dobs03sorEYauSfo/SCnhXf07n/TSbRFnV0lelSzvldWpGWXB5cwsYSguFYudc
+                                        N0/okz93tbq7gWEGdJkyquGMf2VdAv7gKw9SlHZFNtu0gAf1VHljhMLubXrr/2qA
+                                        PvO016FCrjgja763CoAgDu4vNjs3tEna+wvlISzeR3fcl+RUkhwFFFoTy7ABKAWJ
+                                        to/V6kdx8ervVwChpUbvQCtDber+ubKqFNLdc7lSV0ECgYEA8GVHUUj9gymX0EWZ
+                                        Km/nhBJwxS7LbdCsoUt/XMEZW/FRmCrgQRyJ2MIAmEcQCkBOM8b/N26buUcfiguZ
+                                        RjsHe4fduCDxVkyXcE0cbFfsqNU6ehG9H4DDSNXeOwCuEucx23ZtOKmfTrnHpjMl
+                                        WNdu2WGHtRP3A2nssLAlXBnVPQ0CgYEA/e1AV/rYdqScR8v/9xlijCeN6uC3y8Zq
+                                        PIXVIOk9cyxyxxSmXRl6DdGGsHPp1T5LsKJm7LXp1wtbAa+fYGxBjCC60rXwnYX6
+                                        zL2SDZZJQrj4u429Vuy2Br8GPOQdXC51oqA5D2nNSLhv18MKjFk4yzqYezR/NGtb
+                                        kL3b5mRHHDsCgYAM9KhfTRu8keVIqDeU/erwRz4kolz8Uh67oqH+kbmYJu1K0iS7
+                                        3ZngQLRfgJTwuH5+c98VUbS6y4Z7nhxomI3SroPYhI39JKuUtdMuU57BipxYL9SN
+                                        ehcMOdp8O5EmG6eoOD2yrBGV4JVN87uzigjDVmpF7AmH+ZF0BEo/KHVBkQKBgEJg
+                                        AQC+blTdBIjz9021EgCG2l76LLEUhXKanTKEJW70wG/voukVHsV77pQzSH1YUlqy
+                                        qOrZRm3S5xASwztmMOAbMhqgOmxCuGNKbmIk1bOePE5yZ3rQV2h+CHhkPJR7BH7l
+                                        GOVBh8qpg3rH3fr/24usHm2eNF4UbhPwvQmFTt0/AoGAb1OU+7QA9IIwWcdTA68R
+                                        Hpkn3/Ds9wCg5qyhr7rnp1E4oq8tdtA9/ukTY/PRW4eobiteuTsEvUl97gWu0Le1
+                                        DFyT97Axq5P+L06+5jdQWrf+rqyfi3gT3vUfsr8s5L2uA4I1di+0M2d7Q3o0+Vf3
+                                        UzFPUCz6bYqM7ULbATjf0PI=
                                         -----END PRIVATE KEY-----
                                     </API_SSL_KEY>
                                     <API_SSL_CERT>
                                         -----BEGIN CERTIFICATE-----
-                                        MIIDuTCCAqGgAwIBAgIUM2+o/MSeEI3bkdZeqcWpdRtc9JEwDQYJKoZIhvcNAQEL
+                                        MIID4DCCAsigAwIBAgIUNfzsWakROzpI1zBnimJfLzV6g54wDQYJKoZIhvcNAQEL
                                         BQAwTDELMAkGA1UEBhMCREUxETAPBgNVBAcTCEVzY2hib3JuMRswGQYDVQQKExJE
-                                        ZXV0c2NoZSBCb2Vyc2UgQUcxDTALBgNVBAsTBFJpc2swHhcNMTcwNDA3MTQyNTAw
-                                        WhcNMTgwNDA3MTQyNTAwWjBgMQswCQYDVQQGEwJERTERMA8GA1UEBxMIRXNjaGJv
+                                        ZXV0c2NoZSBCb2Vyc2UgQUcxDTALBgNVBAsTBFJpc2swHhcNMTcwNjA3MDgzMjAw
+                                        WhcNMTgwNjA3MDgzMjAwWjBgMQswCQYDVQQGEwJERTERMA8GA1UEBxMIRXNjaGJv
                                         cm4xGzAZBgNVBAoTEkRldXRzY2hlIEJvZXJzZSBBRzENMAsGA1UECxMEUmlzazES
                                         MBAGA1UEAxMJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
-                                        AQEAwgkzsx+TDyCaIWTi3Ho4BgKlpKxL+ehndELr6riPooe9kuBwRimEPK7GCInw
-                                        QBAu6FyDtR9HamOOjRUUEk0UcfBZNo0cMbeduGTcfG8XdICrfVd1qe6u/6EqgTip
-                                        HsJ+gRePBezF06kU6wQagZ7qAshsKwF5Fbmz43iBog4wVcebg128aPnmE9eQufgx
-                                        82VUr2PcD22tnYf3XT/2s3DuQCPZtxBMjpKYA1nGX0Cx32eP9WQP/vA0bYEOAW4v
-                                        ESd10X8P7cWcnKLe7r3s45US2zGH33ZXaPFxM1JRNqMyyfSzScT8nnxb+UuFPIkZ
-                                        OpBV6jO2kIzx6/bLH8aydghbAwIDAQABo38wfTAOBgNVHQ8BAf8EBAMCBaAwHQYD
-                                        VR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0O
-                                        BBYEFG6EKey01pP2cXCW0I7n7R66bhHGMB8GA1UdIwQYMBaAFC0Ucxnya/ds+SY/
-                                        SRZhHLhgMazGMA0GCSqGSIb3DQEBCwUAA4IBAQBdLWPH2mqEtVAVCx5qf88joC5O
-                                        kKgI+v/5c36JGmaOGH2LeF3LfXBZMEhopXQPUra/+AQVabKJSiH0UpsBXeiwBKNY
-                                        uUNrMIqknvgMBm075RhcUvvwVN2K4tbGfG+7b4c7eFP9jofWxzbb/jBzO1rjJBzu
-                                        AsyxCQxx9pFVYVa9af4GQ2SLlHdP/cyQN+Dn/rYgCJfH9EBK3p1uDZ3apDI6cVXt
-                                        lyukl+hICVApqrxXor2wNMMK/0PyMSZMKngOgTDFFpeWxHeSbWxmiIPmbE8q0AT8
-                                        2ttqvZK4Dp2YFxQR44V7UKcJyTvfgG+78bsr/E6FOzXBlrMP9prd48ylEwZk
+                                        AQEA7nLhqksw2LSH28yBWaBItQpar9uDf+U6MqnPtiEE2AsGkcq0BrWRjqWxZqdR
+                                        2DkuqhJWfuw46/uOg7mGncxwiwuDquztkcq8rqLyULGKTjU2tJzZ68JDn3YyJhak
+                                        8OaGCF5L6y8Gj7R95T2CCPoZFKaXRfJdYcn6z1uYFJpUD7ntjrulqleYf8zhJLap
+                                        dUzl62qlOruqR7P8OirX/vbCC755doCZkfR/tHCR+Yu9RJa2teIqYXtsdnw4kw79
+                                        lRe0G/IQVZwlkNxUKmsul9qU/CjyWT5AOgm4A1QiLhk5FKuRlch4TtJ4EPIc2XmJ
+                                        IQmpIgpjlR28no9WuR24SW19/wIDAQABo4GlMIGiMA4GA1UdDwEB/wQEAwIFoDAd
+                                        BgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDAYDVR0TAQH/BAIwADAdBgNV
+                                        HQ4EFgQU+J/pYkbTtyMohebE+1guEM9Zbv0wHwYDVR0jBBgwFoAUn9LsfNcAHaJI
+                                        +BNTF+0efLutuKkwIwYDVR0RBBwwGoIIZGF2ZS5hcGmCCGRhdmUtYXBphwR/AAAB
+                                        MA0GCSqGSIb3DQEBCwUAA4IBAQBJr70SKdGyt62SM5pIuE7kUZLhKBEFQCVvDRmQ
+                                        F7n67rWvoSQA1iZDqaWIahDg/hxa2dVkKnr3zoGLRGuVkgtmLfRo2foOHt+101IC
+                                        y84SO+w6Mge2bBf9MyJMXgwIZYTGOq3FVhh90liOHxKyPUbbwC5MC8RpOWTlYSFl
+                                        3tbN05wol+aOfv+/SWA2cp64CEp7OAESY+3+KQry1LzSbmziWI/8WIWmLh1Ipp4K
+                                        CIsUhicuKGVyCP/KvjOTPkiKoragoyJbJPCIDdMMwIFuq+f/rG98tph2SqMciPu0
+                                        iZjoLM+tN0YbvhAKHg1xfE9Xl08sVzOUuXBTXokZgcaUv6W0
                                         -----END CERTIFICATE-----
                                     </API_SSL_CERT>
                                     <API_AUTH_PUBLIC_KEY>
@@ -540,11 +519,7 @@
                                     <alias>dave.api</alias>
                                 </network>
                                 <wait>
-                                    <http>
-                                        <url>http://localhost:${api.healthcheck.port}/readiness</url>
-                                        <method>GET</method>
-                                        <status>200</status>
-                                    </http>
+                                    <log>All verticles deployed</log>
                                     <time>10000</time>
                                 </wait>
                                 <log>
@@ -552,10 +527,6 @@
                                     <color>red</color>
                                     <file>${project.build.directory}/dave-api.log</file>
                                 </log>
-                                <ports>
-                                    <port>api.http.port:8443</port>
-                                    <port>api.healthcheck.port:8080</port>
-                                </ports>
                             </run>
                         </image>
                     </images>

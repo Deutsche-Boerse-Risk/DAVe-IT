@@ -7,7 +7,9 @@ import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -48,7 +50,12 @@ public class StoreAndQueryIT {
 
     @Before
     public void setUp() {
-        this.vertx = Vertx.vertx();
+        VertxOptions vertxOptions = new VertxOptions().setAddressResolverOptions(new AddressResolverOptions()
+                .setHostsValue(Buffer.buffer(
+                        String.format("127.0.0.1    localhost\n" +
+                        String.format("%s   dave.api", TestConfig.DAVE_API_IP))
+                )));
+        this.vertx = Vertx.vertx(vertxOptions);
         this.mongoClient = this.createMongoClient();
     }
 
@@ -136,7 +143,7 @@ public class StoreAndQueryIT {
     private void testQueryDatabase(TestContext context, String restApi, int expectedCount) {
         final Async asyncClient = context.async();
         WebClient.create(vertx, this.getWebClientOptions())
-                .get(TestConfig.DAVE_API_HTTP_PORT, "localhost", restApi)
+                .get(TestConfig.DAVE_API_HTTP_PORT, "dave.api", restApi)
                 //.as(BodyCodec.jsonArray())
                 .putHeader("Authorization", "Bearer " + JWT_TOKEN)
                 .send(ar -> {
@@ -154,7 +161,7 @@ public class StoreAndQueryIT {
     private void testQueryDatabase(TestContext context, String restApi, AbstractModel queryObject, JsonArray expectedResult) {
         final Async asyncClient = context.async();
         HttpRequest<Buffer> httpRequest = WebClient.create(vertx, this.getWebClientOptions())
-                .get(TestConfig.DAVE_API_HTTP_PORT, "localhost", restApi);
+                .get(TestConfig.DAVE_API_HTTP_PORT, "dave.api", restApi);
         DataHelper.getQueryParams(queryObject).forEach(entry -> {
             httpRequest.addQueryParam(entry.getKey(), entry.getValue().toString());
         });

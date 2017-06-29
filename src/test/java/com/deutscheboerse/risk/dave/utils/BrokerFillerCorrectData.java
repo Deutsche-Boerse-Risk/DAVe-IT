@@ -28,19 +28,17 @@ public class BrokerFillerCorrectData implements BrokerFiller {
 
     private static final String BROKER_USERNAME = "admin";
     private static final String BROKER_PASSWORD = "admin";
-    private static final String ACCOUNT_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin";
-    private static final String LIQUI_GROUP_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin";
-    private static final String LIQUI_GROUP_SPLIT_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin";
-    private static final String POOL_MARGIN_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin";
-    private static final String POSITION_REPORT_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport";
-    private static final String RISK_LIMIT_UTILIZATION_QUEUE = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization";
+    private static final String ACCOUNT_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVEAccountMargin";
+    private static final String LIQUI_GROUP_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVELiquiGroupMargin";
+    private static final String LIQUI_GROUP_SPLIT_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVELiquiGroupSplitMargin";
+    private static final String POOL_MARGIN_QUEUE = "broadcast.DAVE.PRISMA_DAVEPoolMargin";
+    private static final String POSITION_REPORT_QUEUE = "broadcast.DAVE.PRISMA_DAVEPositionReport";
+    private static final String RISK_LIMIT_UTILIZATION_QUEUE = "broadcast.DAVE.PRISMA_DAVERiskLimitUtilization";
     private final Vertx vertx;
-    private final int tcpPort;
     private static ProtonConnection protonConnection;
 
     public BrokerFillerCorrectData(Vertx vertx) {
         this.vertx = vertx;
-        this.tcpPort = TestConfig.BROKER_PORT;
     }
 
     public void setUpAllQueues(int ttSaveNo, Handler<AsyncResult<String>> handler) {
@@ -101,11 +99,13 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Future<ProtonConnection> createAmqpConnection() {
         Future<ProtonConnection> createAmqpConnectionFuture = Future.future();
         ProtonClient protonClient = ProtonClient.create(vertx);
-        protonClient.connect("localhost", this.tcpPort, BROKER_USERNAME, BROKER_PASSWORD, connectResult -> {
+        final String host= TestConfig.BROKER_IP;
+        final int port = TestConfig.BROKER_PORT;
+        protonClient.connect(host, port, BROKER_USERNAME, BROKER_PASSWORD, connectResult -> {
             if (connectResult.succeeded()) {
                 connectResult.result().setContainer("dave/marginLoaderIT").openHandler(openResult -> {
                     if (openResult.succeeded()) {
-                        LOG.info("Connected to {}:{}", "localhost", this.tcpPort);
+                        LOG.info("Connected to {}:{}", host, port);
                         BrokerFillerCorrectData.protonConnection = openResult.result();
                         createAmqpConnectionFuture.complete(BrokerFillerCorrectData.protonConnection);
                     } else {

@@ -60,37 +60,37 @@ public class HealthCheckIT {
 
     @Test
     public void testDaveApiHealth(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(TestConfig.DAVE_API_HEALTHCHECK_PORT, "localhost", REST_HEALTHZ,
+        vertx.createHttpClient().getNow(TestConfig.DAVE_API_HEALTHCHECK_PORT, TestConfig.DAVE_API_IP, REST_HEALTHZ,
                 assertEqualsHttpHandler(HttpResponseStatus.OK.code(), this.expectedHealthResponse.encode(), context));
     }
 
     @Test
     public void testDaveApiReadinessOk(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(TestConfig.DAVE_API_HEALTHCHECK_PORT, "localhost", REST_READINESS,
+        vertx.createHttpClient().getNow(TestConfig.DAVE_API_HEALTHCHECK_PORT, TestConfig.DAVE_API_IP, REST_READINESS,
                 assertEqualsHttpHandler(HttpResponseStatus.OK.code(), this.expectedReadinessResponse.encode(), context));
     }
 
     @Test
     public void testDaveStoreManagerHealth(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(TestConfig.DAVE_STOREMANAGER_HEALTHCHECK_PORT, "localhost", REST_HEALTHZ,
+        vertx.createHttpClient().getNow(TestConfig.DAVE_STOREMANAGER_HEALTHCHECK_PORT, TestConfig.DAVE_STORE_MANAGER_IP, REST_HEALTHZ,
                 assertEqualsHttpHandler(HttpResponseStatus.OK.code(), this.expectedHealthResponse.encode(), context));
     }
 
     @Test
     public void testDaveStoreManagerReadinessOk(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(TestConfig.DAVE_STOREMANAGER_HEALTHCHECK_PORT, "localhost", REST_READINESS,
+        vertx.createHttpClient().getNow(TestConfig.DAVE_STOREMANAGER_HEALTHCHECK_PORT, TestConfig.DAVE_STORE_MANAGER_IP, REST_READINESS,
                 assertEqualsHttpHandler(HttpResponseStatus.OK.code(), this.expectedReadinessResponse.encode(), context));
     }
 
     @Test
     public void testDaveMarginLoaderHealth(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(TestConfig.DAVE_MARGINLOADER_HEALTHCHECK_PORT, "localhost", REST_HEALTHZ,
+        vertx.createHttpClient().getNow(TestConfig.DAVE_MARGINLOADER_HEALTHCHECK_PORT, TestConfig.DAVE_MARGIN_LOADER_IP, REST_HEALTHZ,
                 assertEqualsHttpHandler(HttpResponseStatus.OK.code(), this.expectedHealthResponse.encode(), context));
     }
 
     @Test
     public void testDaveMarginLoaderReadinessOk(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(TestConfig.DAVE_MARGINLOADER_HEALTHCHECK_PORT, "localhost", REST_READINESS,
+        vertx.createHttpClient().getNow(TestConfig.DAVE_MARGINLOADER_HEALTHCHECK_PORT, TestConfig.DAVE_MARGIN_LOADER_IP, REST_READINESS,
                 assertEqualsHttpHandler(HttpResponseStatus.OK.code(), this.expectedReadinessResponse.encode(), context));
     }
 
