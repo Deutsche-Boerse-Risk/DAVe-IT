@@ -166,12 +166,7 @@
                                 <ports>
                                     <port>openid.port:80</port>
                                 </ports>
-                                <wait>
-                                    <http>
-                                        <url>http://localhost:${openid.port}</url>
-                                    </http>
-                                    <time>10000</time>
-                                </wait>                                <log>
+                                <log>
                                     <prefix>OpenId</prefix>
                                     <color>magenta</color>
                                     <file>${project.build.directory}/openid.log</file>
