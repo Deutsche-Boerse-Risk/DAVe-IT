@@ -163,9 +163,6 @@
                                     <name>dave-it</name>
                                     <alias>openid.mock</alias>
                                 </network>
-                                <ports>
-                                    <port>openid.port:80</port>
-                                </ports>
                                 <log>
                                     <prefix>OpenId</prefix>
                                     <color>magenta</color>
