@@ -163,15 +163,15 @@
                                     <name>dave-it</name>
                                     <alias>openid.mock</alias>
                                 </network>
+                                <ports>
+                                    <port>openid.port:80</port>
+                                </ports>
                                 <wait>
-                                    <tcp>
-                                        <mode>direct</mode>
-                                        <ports>
-                                            <port>80</port>
-                                        </ports>
-                                    </tcp>
-                                </wait>
-                                <log>
+                                    <http>
+                                        <url>http://localhost:${openid.port}</url>
+                                    </http>
+                                    <time>10000</time>
+                                </wait>                                <log>
                                     <prefix>OpenId</prefix>
                                     <color>magenta</color>
                                     <file>${project.build.directory}/openid.log</file>
@@ -534,6 +534,9 @@
                                         iZjoLM+tN0YbvhAKHg1xfE9Xl08sVzOUuXBTXokZgcaUv6W0
                                         -----END CERTIFICATE-----
                                     </API_SSL_CERT>
+                                    <API_AUTH_CLIENT_ID>
+                                        dave-ui
+                                    </API_AUTH_CLIENT_ID>
                                     <API_AUTH_WELL_KNOWN_URL>
                                         http://openid.mock/.well-known/jwks.json
                                     </API_AUTH_WELL_KNOWN_URL>
