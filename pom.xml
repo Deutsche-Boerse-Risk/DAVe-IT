@@ -155,6 +155,22 @@
                             </run>
                         </image>
                         <image>
+                            <alias>openid.mock</alias>
+                            <name>zeromic/openid-mock:master</name>
+                            <run>
+                                <network>
+                                    <mode>custom</mode>
+                                    <name>dave-it</name>
+                                    <alias>openid.mock</alias>
+                                </network>
+                                <log>
+                                    <prefix>OpenId</prefix>
+                                    <color>magenta</color>
+                                    <file>${project.build.directory}/openid.log</file>
+                                </log>
+                            </run>
+                        </image>
+                        <image>
                             <alias>dave.store.manager</alias>
                             <name>dbgdave/dave-store-manager:master</name>
                             <run>
@@ -373,6 +389,7 @@
                             <run>
                                 <dependsOn>
                                     <container>dave.store.manager</container>
+                                    <container>openid.mock</container>
                                 </dependsOn>
                                 <env>
                                     <STOREMANAGER_HOSTNAME>dave.store.manager</STOREMANAGER_HOSTNAME>
@@ -509,9 +526,12 @@
                                         iZjoLM+tN0YbvhAKHg1xfE9Xl08sVzOUuXBTXokZgcaUv6W0
                                         -----END CERTIFICATE-----
                                     </API_SSL_CERT>
-                                    <API_AUTH_PUBLIC_KEY>
-                                        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA33TqqLR3eeUmDtHS89qF3p4MP7Wfqt2Zjj3lZjLjjCGDvwr9cJNlNDiuKboODgUiT4ZdPWbOiMAfDcDzlOxA04DDnEFGAf+kDQiNSe2ZtqC7bnIc8+KSG/qOGQIVaay4Ucr6ovDkykO5Hxn7OU7sJp9TP9H0JH8zMQA6YzijYH9LsupTerrY3U6zyihVEDXXOv08vBHk50BMFJbE9iwFwnxCsU5+UZUZYw87Uu0n4LPFS9BT8tUIvAfnRXIEWCha3KbFWmdZQZlyrFw0buUEf0YN3/Q0auBkdbDR/ES2PbgKTJdkjc/rEeM0TxvOUf7HuUNOhrtAVEN1D5uuxE1WSwIDAQAB
-                                    </API_AUTH_PUBLIC_KEY>
+                                    <API_AUTH_CLIENT_ID>
+                                        dave-ui
+                                    </API_AUTH_CLIENT_ID>
+                                    <API_AUTH_WELL_KNOWN_URL>
+                                        http://openid.mock/.well-known/jwks.json
+                                    </API_AUTH_WELL_KNOWN_URL>
                                 </env>
                                 <network>
                                     <mode>custom</mode>
